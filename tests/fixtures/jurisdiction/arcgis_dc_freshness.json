@@ -1,0 +1,1 @@
+{"displayFieldName":"","fieldAliases":{"UPDATED":"UPDATED","NEWEST":"NEWEST"},"fields":[{"name":"UPDATED","type":"esriFieldTypeDate","alias":"UPDATED","length":8},{"name":"NEWEST","type":"esriFieldTypeDate","alias":"NEWEST","length":8}],"features":[{"attributes":{"UPDATED":1791183112000,"NEWEST":1790553600000}}]}

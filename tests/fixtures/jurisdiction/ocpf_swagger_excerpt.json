@@ -1,0 +1,33 @@
+{
+ "info": {
+  "title": "OCPF Public API",
+  "description": "Public API for Massachusetts Office of Campaign and Political Finance (OCPF) data. Provides access to campaign finance filings, filer information, contributions, expenditures, and more.",
+  "contact": {
+   "name": "OCPF",
+   "url": "https://www.ocpf.us"
+  },
+  "version": "v1"
+ },
+ "paths": {
+  "/reports/mayoral/depository/{year}": {
+   "get": {
+    "summary": "Get year-to-date financial reports for mayoral candidates using depository accounts.\r\nReturns receipts, expenditures, and cash on hand for mayoral races."
+   }
+  },
+  "/reports/cc/ytd/{year}": {
+   "get": {
+    "summary": "Get year-to-date financial reports for city council candidates.\r\nReturns depository account activity including receipts, expenditures, and cash on hand."
+   }
+  },
+  "/reports/legislative/race/depository/{year}": {
+   "get": {
+    "summary": "Get legislative race depository reports (2020 and later). Returns year-to-date financial\r\nactivity for legislative candidates organized by district and display group."
+   }
+  },
+  "/reports/pacs/{year}": {
+   "get": {
+    "summary": "Get year-to-date financial reports for Political Action Committees (PACs).\r\nReturns PAC activity including receipts, expenditures, and cash on hand."
+   }
+  }
+ }
+}

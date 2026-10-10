@@ -1,0 +1,630 @@
+{
+ "wa": {
+  "name": "Campaign Finance Summary",
+  "attribution": "Public Disclosure Commission",
+  "attributionLink": "http://www.pdc.wa.gov",
+  "rowsUpdatedAt": 1791139728,
+  "columns": [
+   {
+    "fieldName": "id",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "filer_id",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "filer_type",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "registered",
+    "dataTypeName": "calendar_date"
+   },
+   {
+    "fieldName": "declared",
+    "dataTypeName": "calendar_date"
+   },
+   {
+    "fieldName": "withdrew",
+    "dataTypeName": "calendar_date"
+   },
+   {
+    "fieldName": "discontinued",
+    "dataTypeName": "calendar_date"
+   },
+   {
+    "fieldName": "filing_type",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "receipt_date",
+    "dataTypeName": "calendar_date"
+   },
+   {
+    "fieldName": "election_year",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "candidate_committee_status",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "filer_name",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "committee_acronym",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "committee_address",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "committee_city",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "committee_county",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "committee_state",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "committee_zip",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "committee_email",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "candidate_email",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "candidate_committee_phone",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "office",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "office_code",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "jurisdiction",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "jurisdiction_code",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "jurisdiction_county",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "jurisdiction_type",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "jurisdiction_voters",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "jurisdiction_reporting_code",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "jurisdiction_reporting_requirement",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "committee_category",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "political_committee_type",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "bonafide_committee",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "bonafide_type",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "position",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "party_code",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "party",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "election_date",
+    "dataTypeName": "calendar_date"
+   },
+   {
+    "fieldName": "reporting_option",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "active_candidate",
+    "dataTypeName": "checkbox"
+   },
+   {
+    "fieldName": "on_primary_election_ballot",
+    "dataTypeName": "checkbox"
+   },
+   {
+    "fieldName": "on_general_election_ballot",
+    "dataTypeName": "checkbox"
+   },
+   {
+    "fieldName": "primary_election_status",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "general_election_status",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "election_status",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "exempt_nonexempt",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "ballot_committee",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "ballot_proposal_count",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "ballot_number",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "ballot_title",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "for_or_against",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "ballot_proposal_detail",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "other_pac",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "treasurer_address",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "treasurer_city",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "treasurer_state",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "treasurer_zip",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "treasurer_phone",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "has_reports",
+    "dataTypeName": "checkbox"
+   },
+   {
+    "fieldName": "contributions_amount",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "carryforward_amount",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "expenditures_amount",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "loans_amount",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "pledges_amount",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "debts_amount",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "independent_expenditures_for_amount",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "independent_expenditures_against_amount",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "url",
+    "dataTypeName": "url"
+   },
+   {
+    "fieldName": "committee_id",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "person_id",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "candidacy_id",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "fund_id",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "legislative_district",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "treasurer_name",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "pac_type",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "continuing",
+    "dataTypeName": "checkbox"
+   },
+   {
+    "fieldName": "updated_at",
+    "dataTypeName": "calendar_date"
+   },
+   {
+    "fieldName": "row_checksum",
+    "dataTypeName": "text"
+   }
+  ],
+  "description": "This data set contains a summary of information about candidate campaigns and political committees by election year. For candidate campaigns and single-year/election committees, a single record is provided that covers all activity of the campaign for the given election year. Information for continuing political committees is summarized by calendar/reporting year. The data set covers that prior 16 "
+ },
+ "hi": {
+  "name": "Campaign Contributions Received By Hawaii State and County Candidates From January 1, 2015 Through August 8, 2026",
+  "attribution": "State of Hawaii; Campaign Spending Commission",
+  "attributionLink": "http://ags.hawaii.gov",
+  "rowsUpdatedAt": 1788294124,
+  "columns": [
+   {
+    "fieldName": "candidate_name",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "contributor_type",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "contributor_name",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "date",
+    "dataTypeName": "calendar_date"
+   },
+   {
+    "fieldName": "amount",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "aggregate",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "employer",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "occupation",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "street_address_1",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "street_address_2",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "city",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "state",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "zip_code",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "non_resident_yes_or_no_",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "non_monetary_yes_or_no",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "non_monetary_category",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "non_monetary_description",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "office",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "district",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "county",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "party",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "reg_no",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "election_period",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "mapping_address",
+    "dataTypeName": "location"
+   },
+   {
+    "fieldName": "inoutstate",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "range",
+    "dataTypeName": "text"
+   }
+  ],
+  "description": "The data set also includes searchable data from amended reports filed in the last ten years with transactions dated prior to January 1, 2015."
+ },
+ "nyc": {
+  "name": "Campaign Financial Analysis",
+  "attribution": "Campaign Finance Board (CFB)",
+  "attributionLink": null,
+  "rowsUpdatedAt": 1766158614,
+  "columns": [
+   {
+    "fieldName": "el_cycle",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "from_stmt",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "to_stmt",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "office",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "cand_name",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "cand_id",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "boro_dist",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "termnd",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "incumbent",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "cntrs_no",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "cntns_no",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "net_cntns",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "match_amt",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "i_no",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "i_cntns_no",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "i_amt",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "sml_no",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "sml_amt",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "pubfnd_pmt",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "net_expnd",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "cand_class_cd",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "max_no",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "max_amt",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "limit",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "outstanding_bills",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "no_match",
+    "dataTypeName": "number"
+   }
+  ],
+  "description": "Financial Analysis of election campaign."
+ },
+ "austin": {
+  "name": "Campaign Finance - Contributions",
+  "attribution": "City of Austin, Texas - data.austintexas.gov",
+  "attributionLink": null,
+  "rowsUpdatedAt": 1791099638,
+  "columns": [
+   {
+    "fieldName": "donor",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "recipient",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "contribution_amount",
+    "dataTypeName": "number"
+   },
+   {
+    "fieldName": "contribution_date",
+    "dataTypeName": "calendar_date"
+   },
+   {
+    "fieldName": "donor_type",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "donor_address",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "city_state_zip",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "contribution_year",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "donor_reported_occupation",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "donor_reported_employer",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "contribution_type",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "date_reported",
+    "dataTypeName": "calendar_date"
+   },
+   {
+    "fieldName": "report_filed",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "in_kind_description",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "out_of_state_pac",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "correction",
+    "dataTypeName": "text"
+   },
+   {
+    "fieldName": "view_report",
+    "dataTypeName": "url"
+   },
+   {
+    "fieldName": "transaction_id",
+    "dataTypeName": "text"
+   }
+  ],
+  "description": "This dataset lists all contributions and pledges received by candidates, officeholders and political committees on data files submitted per City Code Chapter 2-2-26.\n\nFor a complete listing of each column heading, please see the <a target=\"_blank\" href=\"http://services.austintexas.gov/edims/document.cfm?id=262464\" aria-label=\"View the field listing in a new window\">Contributions Dataset \u2013 Field Li"
+ }
+}

@@ -1,0 +1,423 @@
+{
+  "_about": "Registry of state and local campaign-finance datasets this connector can query. Each entry was checked against the publisher's live metadata and one live query on the date in verified_on. publisher and publisher_link are copied verbatim from the dataset's own credit (Socrata attribution fields, or the catalogue record named in catalog_record for platforms that carry no credit with the data), never written from memory. Where that credit is a city or portal and not an agency, publisher_is_agency is false and the connector says so. platform is socrata unless stated. A carto or arcgis entry is turned into SQL text, so it may only take integer, enum and present (yes or no) filters. On arcgis the credit is the layer's own copyrightText. An ocpf entry is one fixed list on the Massachusetts OCPF Public API: the year goes in the path, yes/no and listed values go as parameters, and a local filter is only ever compared against the rows that came back. Its credit is read from the API's own description (catalog_record). Every entry carries terms: what the publisher's own pages said about using the data, read on the date given, with the publisher's condition quoted word for word or null when none was found. Re-check with: node tests/verify-jurisdiction-sources.mjs",
+  "verified_on": "2026-10-05",
+  "sources": [
+    {
+      "id": "wa-pdc-summary",
+      "cycle_filter": "election_year",
+      "match": { "state": "WA" },
+      "domain": "data.wa.gov",
+      "dataset": "3h9x-7bvm",
+      "dataset_name": "Campaign Finance Summary",
+      "publisher": "Public Disclosure Commission",
+      "publisher_link": "http://www.pdc.wa.gov",
+      "covers": "One summary record per candidate campaign or political committee per election year, with the office and jurisdiction each is running in. Rows seen include state legislative seats and city jurisdictions.",
+      "covers_basis": "dataset description, and jurisdiction values observed in live rows",
+      "terms": {
+        "read_on": "2026-10-05",
+        "source": "https://data.wa.gov/d/3h9x-7bvm",
+        "condition": "CONDITION OF RELEASE: This publication and or referenced documents constitutes a list of individuals prepared by the Washington State Public Disclosure Commission and may not be used for commercial purposes. This list is provided on the condition and with the understanding that the persons receiving it agree to this statutorily imposed limitation on its use. See RCW 42.56.070(9) and AGO 1975 No. 15.",
+        "summary": "The dataset's description attaches a no-commercial-use condition to this list of individuals, citing RCW 42.56.070 (the lists-of-individuals rule is now subsection 8). The record's licence field says Public Domain.",
+        "description_contains": "may not be used for commercial purposes"
+      },
+      "mode": "rows",
+      "select": ["filer_name", "office", "jurisdiction", "jurisdiction_county", "legislative_district", "party", "election_year", "contributions_amount", "expenditures_amount", "independent_expenditures_for_amount", "independent_expenditures_against_amount", "debts_amount", "candidate_committee_status", "election_status", "receipt_date"],
+      "numeric": ["contributions_amount", "expenditures_amount", "independent_expenditures_for_amount", "independent_expenditures_against_amount", "debts_amount"],
+      "order_by": "contributions_amount DESC",
+      "filters": {
+        "election_year": { "column": "election_year", "type": "integer" },
+        "legislative_district": { "column": "legislative_district", "type": "text" },
+        "jurisdiction_county": { "column": "jurisdiction_county", "type": "text" },
+        "office": { "column": "office", "type": "text" },
+        "jurisdiction": { "column": "jurisdiction", "type": "text" }
+      },
+      "suggestions": [
+        { "label": "State legislative district races", "needs": ["sldu"], "filters": { "election_year": "$year", "legislative_district": "$sldu" } },
+        { "label": "Everything filed in this county", "needs": ["county_upper"], "filters": { "election_year": "$year", "jurisdiction_county": "$county_upper" } }
+      ],
+      "notes": [
+        "Filter values must match the publisher's spelling exactly. Counties are upper case here (for example KING) and district numbers have no leading zero.",
+        "Independent expenditures for and against are the dataset's own columns, so this is the closest state-level view to outside spending. Totals are as filed."
+      ]
+    },
+    {
+      "id": "hi-csc-contributions",
+      "cycle_filter": "election_period",
+      "match": { "state": "HI" },
+      "domain": "hicscdata.hawaii.gov",
+      "dataset": "jexd-xbcg",
+      "dataset_name": "Campaign Contributions Received By Hawaii State and County Candidates",
+      "publisher": "State of Hawaii; Campaign Spending Commission",
+      "publisher_link": "http://ags.hawaii.gov",
+      "covers": "Contributions received by Hawaii state and county candidates, from 2015 onward, with the office, county and district of the race. Per the dataset's title.",
+      "covers_basis": "dataset title and description",
+      "terms": {
+        "read_on": "2026-10-05",
+        "source": "https://opendata.hawaii.gov/pages/terms-of-use",
+        "condition": "Any person who uses or downloads any Dataset or Data in a Dataset in any software application, derivative work, or other application or presentation shall include the following disclaimer on the site where the software application, derivative work, or other application or presentation can be accessed: \"The data made available here was modified for use from its original source, which is opendata.hawaii.gov The State of Hawaii does not vouch for the quality and timeliness of the data presented herein, any analysis of the data presented herein, nor any content, viewpoints, products, or services presented herein.\"",
+        "summary": "The record's licence field says Public Domain and says the dataset adheres to the state's open-data terms of use. Those terms require the disclaimer above wherever the data is shown in an application, and include an indemnity. The dataset sits on the commission's own portal; the link to the state terms is that one line in its record."
+      },
+      "mode": "grouped",
+      "group_by": ["candidate_name", "office", "county", "district", "party", "election_period"],
+      "measures": [
+        { "as": "total", "fn": "sum", "column": "amount" },
+        { "as": "gifts", "fn": "count" }
+      ],
+      "order_by": "total DESC",
+      "filters": {
+        "election_period": { "column": "election_period", "type": "text" },
+        "county": { "column": "county", "type": "text" },
+        "office": { "column": "office", "type": "text" },
+        "district": { "column": "district", "type": "text" },
+        "party": { "column": "party", "type": "text" }
+      },
+      "suggestions": [
+        { "label": "Candidates in this county", "needs": ["county"], "filters": { "county": "$county" } }
+      ],
+      "notes": [
+        "Each row is one candidate for one election period, summed from the contribution records. Totals are money received, not net of spending, and they include every itemized contribution in the dataset.",
+        "Election periods are text such as 2020-2024. Pass election_period to avoid mixing cycles."
+      ]
+    },
+    {
+      "id": "nyc-cfb-analysis",
+      "cycle_filter": "el_cycle",
+      "match": { "state": "NY", "place": "^New York city$" },
+      "domain": "data.cityofnewyork.us",
+      "dataset": "m3tj-a2pb",
+      "dataset_name": "Campaign Financial Analysis",
+      "publisher": "Campaign Finance Board (CFB)",
+      "publisher_link": null,
+      "covers": "Financial analysis of election campaigns, one row per candidate per election cycle. The dataset's description is a single line and does not list which offices it covers.",
+      "covers_basis": "dataset name and one-line description",
+      "terms": {
+        "read_on": "2026-10-05",
+        "source": "https://www.nyc.gov/opendata/get-started/FAQs",
+        "condition": null,
+        "summary": "The NYC Open Data FAQ says \"There are no restrictions on the use of Open Data.\" The dataset record has no licence field. The Open Data Law itself was not read (its host blocks automated reading)."
+      },
+      "mode": "rows",
+      "select": ["el_cycle", "cand_name", "cand_id", "office", "boro_dist", "incumbent", "net_cntns", "match_amt", "pubfnd_pmt", "net_expnd", "sml_amt", "i_amt"],
+      "numeric": ["net_cntns", "match_amt", "pubfnd_pmt", "net_expnd", "sml_amt", "i_amt"],
+      "order_by": "net_cntns DESC",
+      "filters": {
+        "el_cycle": { "column": "el_cycle", "type": "text" },
+        "boro_dist": { "column": "boro_dist", "type": "text" },
+        "office": { "column": "office", "type": "text" },
+        "incumbent": { "column": "incumbent", "type": "text" }
+      },
+      "suggestions": [],
+      "notes": [
+        "office is a numeric code and boro_dist a coded string. The dataset's metadata does not define either, so read the publisher's own documentation before translating them.",
+        "The most recent cycle in the data may lag. Check el_cycle and ask for it explicitly. Pass el_cycle as text, for example 2025."
+      ]
+    },
+    {
+      "id": "austin-contributions",
+      "cycle_filter": "contribution_year",
+      "match": { "state": "TX", "place": "^Austin city$" },
+      "domain": "datahub.austintexas.gov",
+      "dataset": "3kfv-biw6",
+      "dataset_name": "Campaign Finance - Contributions",
+      "publisher": "City of Austin, Texas - data.austintexas.gov",
+      "publisher_link": null,
+      "publisher_is_agency": false,
+      "metadata_check": { "Ownership": { "Department name": "Austin City Clerk's Office" } },
+      "covers": "Contributions and pledges received by candidates, officeholders and political committees on data files submitted under City Code Chapter 2-2-26, per the dataset's description. It has no office or district field.",
+      "covers_basis": "dataset description",
+      "terms": {
+        "read_on": "2026-10-05",
+        "source": "https://data.austintexas.gov/stories/s/Open-Data-Terms-of-Use/ranj-cccq/",
+        "condition": null,
+        "summary": "The city's Open Data Terms of Use say data is \"offered free and without restriction\" and in the public domain unless a dataset says otherwise, and ask for credit to both the City of Austin and the department. The record's licence field says Public Domain."
+      },
+      "mode": "grouped",
+      "group_by": ["recipient"],
+      "measures": [
+        { "as": "total", "fn": "sum", "column": "contribution_amount" },
+        { "as": "gifts", "fn": "count" }
+      ],
+      "order_by": "total DESC",
+      "filters": {
+        "contribution_year": { "column": "contribution_year", "type": "text" }
+      },
+      "suggestions": [
+        { "label": "Recipients this year", "needs": [], "filters": { "contribution_year": "$year" } }
+      ],
+      "notes": [
+        "Recipients are candidates and political committees mixed together, and the dataset has no office field, so a recipient's race has to come from elsewhere.",
+        "The dataset's credit field names the city's open-data portal, not an agency, but the record's Ownership field names the Austin City Clerk's Office. Confirm the responsible office on the city's own site before naming it."
+      ]
+    },
+    {
+      "id": "phl-campfin-summary",
+      "platform": "carto",
+      "cycle_filter": "report_year",
+      "match": { "state": "PA", "place": "^Philadelphia city$" },
+      "domain": "phl.carto.com",
+      "dataset": "campfin_summary",
+      "dataset_name": "Campaign Finance Reports",
+      "dataset_url": "https://opendataphilly.org/datasets/campaign-finance-reports/",
+      "catalog_record": "https://raw.githubusercontent.com/opendataphilly/opendataphilly-jkan/main/_datasets/campaign-finance-reports.md",
+      "publisher": "City of Philadelphia",
+      "publisher_link": null,
+      "publisher_is_agency": false,
+      "covers": "One summary row per filer per year, built from reports filed electronically since 2019 by those required to report money raised or spent to influence a Philadelphia election, per the city's technical documentation. Filers are candidates, candidate committees, political committees, unions, ward committees and party committees. Filers the city classed as a business, as an individual who is not a candidate, or has not classified yet are in the table but are not returned here.",
+      "covers_basis": "catalogue description, the technical documentation it links to, and values observed in live rows",
+      "terms": {
+        "read_on": "2026-10-05",
+        "source": "https://metadata.phila.gov/#help/help-faqs/what-are-the-terms-of-use/",
+        "condition": "The City of Philadelphia reserves all rights in the database and any data contained therein, and the end user's use of the data does not constitute a transfer of, nor does the end user receive, any title or interest in the database or any other City data. The City of Philadelphia makes no representation about the accuracy of any specific information in this data and is provided \"as is\" and without Warranty of any kind. The user of this data will assume complete responsibility for any and all occurrences resulting from its use or display and will hold the City of Philadelphia harmless from any and all claims, demands, liabilities, obligations, damages, suits, judgments or settlements, including reasonable costs and attorneys' fees that arise from use of this data.",
+        "summary": "This notice is what the catalogue calls the \"City of Philadelphia License\". phila.gov's general website terms also bar commercial use and republication without written permission; whether they reach the open data is not stated."
+      },
+      "mode": "rows",
+      "select": ["filer_name", "filer_candidate_name", "filer_type", "candidate_office", "office_level", "candidate_district_num", "candidate_party", "report_year", "total_contributions", "total_expenditures", "ending_cash_balance", "ending_unpaid_debts", "num_paper_filings", "last_report_date"],
+      "numeric": ["report_year", "total_contributions", "total_expenditures", "ending_cash_balance", "ending_unpaid_debts", "num_paper_filings"],
+      "dates": ["last_report_date"],
+      "require_in": { "filer_type": ["Candidate Committee", "Individual_Candidate", "Other PAC", "Union", "Ward", "Political Party Committee"] },
+      "freshness_column": "last_report_date",
+      "order_by": "total_contributions DESC",
+      "filters": {
+        "report_year": { "column": "report_year", "type": "integer" },
+        "filer_type": { "column": "filer_type", "type": "enum", "values": ["Candidate Committee", "Individual_Candidate", "Other PAC", "Union", "Ward", "Political Party Committee"], "excluded_values": ["Business", "Individual_Noncandidate", "Uncategorized"] },
+        "candidate_office": { "column": "candidate_office", "type": "enum", "values": ["Mayor", "City Council", "City Council At-Large", "City Commissioner", "City Controller", "District Attorney", "Sheriff", "Register of Wills", "Judge of the Court of Common Pleas", "Judge of the Municipal Court", "Judge of the Superior Court", "State Representative", "State Senator", "Governor"] },
+        "office_level": { "column": "office_level", "type": "enum", "values": ["local", "state"] },
+        "candidate_district_num": { "column": "candidate_district_num", "type": "integer", "stored_as_text": true }
+      },
+      "suggestions": [
+        { "label": "Candidate committees with reports this year", "needs": [], "filters": { "report_year": "$year", "filer_type": "Candidate Committee" } },
+        { "label": "Every filer with reports this year, biggest first", "needs": [], "filters": { "report_year": "$year" } }
+      ],
+      "notes": [
+        "Each row is one filer for one calendar year of reports, not a whole campaign. A race that runs across two years has a row for each year, and a candidate can have more than one filer (the candidate personally and a candidate committee). Do not add rows together without saying so.",
+        "Totals come from electronic filings only. num_paper_filings counts reports the filer submitted on paper, whose transactions are not in these totals, so a filer with paper filings may have raised or spent more than shown. Per the city's technical documentation.",
+        "Office, level, party and district are filled in only where the city matched a filer to its own ballot lists. Many candidate committees have none, most of all outside an election year, so an empty candidate_office does not mean the filer has no race, and filtering by office leaves those filers out. Rows with office_level state are present.",
+        "Without a filer_type or candidate_office filter the biggest rows are usually unions and political committees, not candidates.",
+        "The city describes these open-data tables as cleaned and enriched for information only, and calls the filing system's raw exports the official record. filer_type was assigned by the city's own review.",
+        "ending_unpaid_debts is a balance at the end of the filer's last report that year, so never add it across years. candidate_district_num reads 0 on many rows and the documentation read does not define it, so do not interpret it.",
+        "The city's technical documentation says its Board of Ethics and Office of Innovation and Technology developed these tables. That says who built the data, not where any office files.",
+        "The catalogue credits the City of Philadelphia and names no agency as publisher. Find the responsible office on the city's own site before naming it."
+      ]
+    },
+    {
+      "id": "dc-ocf-contributions",
+      "platform": "arcgis",
+      "cycle_filter": "election_year",
+      "cycle_filter_required": true,
+      "cycle_filter_reason": "Without one the publisher's server cuts the answer off part-way, so the totals shown would not be the biggest.",
+      "match": { "state": "DC" },
+      "domain": "maps2.dcgis.dc.gov",
+      "service_path": "/dcgis/rest/services/DCGIS_DATA/Public_Service_WebMercator/MapServer",
+      "dataset": "34",
+      "dataset_name": "OCF - Contributions",
+      "dataset_url": "https://maps2.dcgis.dc.gov/dcgis/rest/services/DCGIS_DATA/Public_Service_WebMercator/MapServer/34",
+      "publisher": "Office of Campaign Finance",
+      "publisher_link": null,
+      "covers": "Election campaign contribution data shared by the Office of Campaign Finance, which the layer's description says is charged with administering and enforcing the District of Columbia laws pertaining to campaign finance operations. The description says it covers contributions reported from 2003 through the current reporting period, is updated daily, and is as reported but may not be complete. It has no office or ward-of-the-race field.",
+      "covers_basis": "layer description and copyright text, and values observed in live rows",
+      "terms": {
+        "read_on": "2026-10-05",
+        "source": "https://opendata.dc.gov/pages/data-policy",
+        "condition": null,
+        "summary": "The catalogue item is licensed Creative Commons Attribution 4.0. The District's Data Policy says open data is to be treated as CC0, with no restrictions on commercial or non-commercial use, and asks for attribution."
+      },
+      "mode": "grouped",
+      "group_by": ["CANDIDATENAME", "COMMITTEENAME", "ELECTIONYEAR"],
+      "measures": [
+        { "as": "total", "fn": "sum", "column": "AMOUNT" },
+        { "as": "gifts", "fn": "count" }
+      ],
+      "count_field": "OBJECTID",
+      "freshness_column": "GIS_LAST_MOD_DTTM",
+      "newest_column": "DATEOFRECEIPT",
+      "order_by": "total DESC",
+      "filters": {
+        "election_year": { "column": "ELECTIONYEAR", "type": "integer" },
+        "has_candidate": { "column": "CANDIDATENAME", "type": "present" }
+      },
+      "suggestions": [
+        { "label": "Committees with a named candidate, this election year", "needs": [], "filters": { "election_year": "$year", "has_candidate": "yes" } },
+        { "label": "Every committee, this election year", "needs": [], "filters": { "election_year": "$year" } }
+      ],
+      "notes": [
+        "Each row is one committee for one election year, summed from its contribution records. Totals are money received, not net of spending. This connection does not read the separate expenditures table.",
+        "The table has no office field, so which race a committee belongs to has to come from elsewhere. Committees with no candidate name are in the data too: set has_candidate to yes to leave them out.",
+        "election_year is required. Most records sit in even years; odd years hold few, and a small number of records have no election year and never appear here.",
+        "A total of null means the committee's records carry no amounts. The amount field is stored as whole numbers in this layer.",
+        "The table also holds each contributor's address and ward. This connection never reads them, so it cannot group by ward."
+      ]
+    },
+    {
+      "id": "ma-ocpf-legislative",
+      "platform": "ocpf",
+      "cycle_filter": "year",
+      "cycle_filter_required": true,
+      "cycle_filter_reason": "The publisher keeps these lists one year at a time.",
+      "match": { "state": "MA" },
+      "domain": "api.ocpf.us",
+      "dataset": "/reports/legislative/race/depository/{year}",
+      "dataset_name": "OCPF Public API",
+      "dataset_url": "https://api.ocpf.us/swagger/index.html",
+      "catalog_record": "https://api.ocpf.us/swagger/v1/swagger.json",
+      "publisher": "Massachusetts Office of Campaign and Political Finance (OCPF)",
+      "publisher_link": "https://www.ocpf.us",
+      "covers": "Year-to-date financial activity for legislative candidates, organized by district, per the API's description. The description says 2020 and later; 2018 and 2019 also returned rows when checked. Besides House and Senate districts the list holds offices named for counties, which the description does not explain.",
+      "covers_basis": "the API's own description of this list, and values observed in live answers on 2026-10-05",
+      "terms": {
+        "read_on": "2026-10-05",
+        "source": "https://api.ocpf.us/legal/law",
+        "condition": null,
+        "summary": "No condition on readers was found in M.G.L. c. 55 as OCPF publishes it, on its Data Center page, in its API description or in its data dictionary. Section 25 of c. 55 requires reports to be open to public inspection and reproduction. The regulations (970 CMR) were not read."
+      },
+      "mode": "rows",
+      "select": ["filerName", "officeSought", "partyAffiliation", "receiptsYtdNumeric", "expendituresYtdNumeric", "currentCashOnHandNumeric", "bankReportEndDate"],
+      "numeric": ["receiptsYtdNumeric", "expendituresYtdNumeric", "currentCashOnHandNumeric"],
+      "dates_mdy": ["bankReportEndDate"],
+      "newest_column": "bankReportEndDate",
+      "order_by": "receiptsYtdNumeric DESC",
+      "filters": {
+        "year": { "in": "path", "type": "integer" },
+        "chamber": { "in": "query", "param": "DisplayGroup", "type": "enum", "values": ["House", "Senate"] },
+        "office": { "column": "officeSought", "type": "local" }
+      },
+      "suggestions": [
+        { "label": "This address's state House district", "needs": ["sldl_name"], "filters": { "year": "$year", "chamber": "House", "office": "$sldl_name" } },
+        { "label": "This address's state Senate district", "needs": ["sldu_name"], "filters": { "year": "$year", "chamber": "Senate", "office": "$sldu_name" } }
+      ],
+      "notes": [
+        "Each row is one filer for the calendar year asked for. Receipts and expenditures are year to date, as reported up to bankReportEndDate, so two rows can cover different stretches of the year.",
+        "The publisher has no way to ask for one city or district, so the office filter is applied to the rows after they arrive. The top rows without it are the biggest in the whole state.",
+        "office is the district as the publisher writes it, for example 14th Suffolk or Norfolk & Suffolk. Case, & against and, and a trailing District are ignored when matching.",
+        "This list holds filers in what OCPF calls the depository system, which its data dictionary describes as a reporting framework in which the campaign's bank reports activity to OCPF directly. A candidate outside that system is not in it."
+      ]
+    },
+    {
+      "id": "ma-ocpf-mayoral",
+      "platform": "ocpf",
+      "cycle_filter": "year",
+      "cycle_filter_required": true,
+      "cycle_filter_reason": "The publisher keeps these lists one year at a time.",
+      "match": { "state": "MA" },
+      "domain": "api.ocpf.us",
+      "dataset": "/reports/mayoral/depository/{year}",
+      "dataset_name": "OCPF Public API",
+      "dataset_url": "https://api.ocpf.us/swagger/index.html",
+      "catalog_record": "https://api.ocpf.us/swagger/v1/swagger.json",
+      "publisher": "Massachusetts Office of Campaign and Political Finance (OCPF)",
+      "publisher_link": "https://www.ocpf.us",
+      "covers": "Year-to-date financial reports for mayoral candidates using depository accounts: receipts, expenditures and cash on hand, per the API's description. In the 2025 answer the offices were the mayors of 45 cities.",
+      "covers_basis": "the API's own description of this list, and values observed in live answers on 2026-10-05",
+      "terms": {
+        "read_on": "2026-10-05",
+        "source": "https://api.ocpf.us/legal/law",
+        "condition": null,
+        "summary": "No condition on readers was found in M.G.L. c. 55 as OCPF publishes it, on its Data Center page, in its API description or in its data dictionary. Section 25 of c. 55 requires reports to be open to public inspection and reproduction. The regulations (970 CMR) were not read."
+      },
+      "mode": "rows",
+      "select": ["filerName", "officeSought", "partyAffiliation", "receiptsYtdNumeric", "expendituresYtdNumeric", "currentCashOnHandNumeric", "bankReportEndDate"],
+      "numeric": ["receiptsYtdNumeric", "expendituresYtdNumeric", "currentCashOnHandNumeric"],
+      "dates_mdy": ["bankReportEndDate"],
+      "newest_column": "bankReportEndDate",
+      "order_by": "receiptsYtdNumeric DESC",
+      "filters": {
+        "year": { "in": "path", "type": "integer" },
+        "on_ballot": { "in": "query", "param": "OnBallot", "type": "boolean" },
+        "office": { "column": "officeSought", "type": "local" }
+      },
+      "suggestions": [
+        { "label": "Mayoral candidates in this city", "needs": ["place_short"], "filters": { "year": "$year", "office": "Mayoral, $place_short" } }
+      ],
+      "notes": [
+        "Each row is one filer for the calendar year asked for. Receipts and expenditures are year to date, as reported up to bankReportEndDate, so two rows can cover different stretches of the year.",
+        "The publisher has no way to ask for one city or district, so the office filter is applied to the rows after they arrive. The top rows without it are the biggest in the whole state.",
+        "office is written as Mayoral, then the city, for example Mayoral, Boston. A city missing from the answer has no mayoral filer in this list for that year.",
+        "on_ballot narrowed the 2025 answer from 128 filers to 68 when checked. The API does not define it, so do not explain it beyond its name. partyAffiliation is blank on every row here.",
+        "This list holds filers in what OCPF calls the depository system, which its data dictionary describes as a reporting framework in which the campaign's bank reports activity to OCPF directly. A candidate outside that system is not in it."
+      ]
+    },
+    {
+      "id": "ma-ocpf-council",
+      "platform": "ocpf",
+      "cycle_filter": "year",
+      "cycle_filter_required": true,
+      "cycle_filter_reason": "The publisher keeps these lists one year at a time.",
+      "match": { "state": "MA" },
+      "domain": "api.ocpf.us",
+      "dataset": "/reports/cc/ytd/{year}",
+      "dataset_name": "OCPF Public API",
+      "dataset_url": "https://api.ocpf.us/swagger/index.html",
+      "catalog_record": "https://api.ocpf.us/swagger/v1/swagger.json",
+      "publisher": "Massachusetts Office of Campaign and Political Finance (OCPF)",
+      "publisher_link": "https://www.ocpf.us",
+      "covers": "Year-to-date financial reports for city council candidates: depository account activity including receipts, expenditures and cash on hand, per the API's description. In the 2025 answer the offices were city councilors in 17 cities.",
+      "covers_basis": "the API's own description of this list, and values observed in live answers on 2026-10-05",
+      "terms": {
+        "read_on": "2026-10-05",
+        "source": "https://api.ocpf.us/legal/law",
+        "condition": null,
+        "summary": "No condition on readers was found in M.G.L. c. 55 as OCPF publishes it, on its Data Center page, in its API description or in its data dictionary. Section 25 of c. 55 requires reports to be open to public inspection and reproduction. The regulations (970 CMR) were not read."
+      },
+      "mode": "rows",
+      "rows_key": "reports",
+      "select": ["filerName", "officeSought", "partyAffiliation", "receiptsYtdNumeric", "expendituresYtdNumeric", "currentCashOnHandNumeric", "bankReportEndDate"],
+      "numeric": ["receiptsYtdNumeric", "expendituresYtdNumeric", "currentCashOnHandNumeric"],
+      "dates_mdy": ["bankReportEndDate"],
+      "newest_column": "bankReportEndDate",
+      "order_by": "receiptsYtdNumeric DESC",
+      "filters": {
+        "year": { "in": "path", "type": "integer" },
+        "on_ballot": { "in": "query", "param": "OnBallot", "type": "boolean" },
+        "office": { "column": "officeSought", "type": "local" }
+      },
+      "suggestions": [
+        { "label": "City council candidates in this city", "needs": ["place_short"], "filters": { "year": "$year", "office": "City Councilor, $place_short" } }
+      ],
+      "notes": [
+        "Each row is one filer for the calendar year asked for. Receipts and expenditures are year to date, as reported up to bankReportEndDate, so two rows can cover different stretches of the year.",
+        "The publisher has no way to ask for one city or district, so the office filter is applied to the rows after they arrive. The top rows without it are the biggest in the whole state.",
+        "office is written as City Councilor, then the city, for example City Councilor, Boston. It does not say which council seat or district. A city missing from the answer has no council filer in this list for that year.",
+        "Many rows show zero receipts. on_ballot is passed to the publisher as given and the API does not define it. partyAffiliation is blank on every row here.",
+        "This list holds filers in what OCPF calls the depository system, which its data dictionary describes as a reporting framework in which the campaign's bank reports activity to OCPF directly. A candidate outside that system is not in it."
+      ]
+    },
+    {
+      "id": "ma-ocpf-pacs",
+      "platform": "ocpf",
+      "cycle_filter": "year",
+      "cycle_filter_required": true,
+      "cycle_filter_reason": "The publisher keeps these lists one year at a time.",
+      "match": { "state": "MA" },
+      "domain": "api.ocpf.us",
+      "dataset": "/reports/pacs/{year}",
+      "dataset_name": "OCPF Public API",
+      "dataset_url": "https://api.ocpf.us/swagger/index.html",
+      "catalog_record": "https://api.ocpf.us/swagger/v1/swagger.json",
+      "publisher": "Massachusetts Office of Campaign and Political Finance (OCPF)",
+      "publisher_link": "https://www.ocpf.us",
+      "covers": "Year-to-date financial reports for Political Action Committees (PACs): receipts, expenditures and cash on hand, per the API's description.",
+      "covers_basis": "the API's own description of this list, and values observed in live answers on 2026-10-05",
+      "terms": {
+        "read_on": "2026-10-05",
+        "source": "https://api.ocpf.us/legal/law",
+        "condition": null,
+        "summary": "No condition on readers was found in M.G.L. c. 55 as OCPF publishes it, on its Data Center page, in its API description or in its data dictionary. Section 25 of c. 55 requires reports to be open to public inspection and reproduction. The regulations (970 CMR) were not read."
+      },
+      "mode": "rows",
+      "select": ["filerName", "officeSought", "partyAffiliation", "receiptsYtdNumeric", "expendituresYtdNumeric", "currentCashOnHandNumeric", "bankReportEndDate"],
+      "numeric": ["receiptsYtdNumeric", "expendituresYtdNumeric", "currentCashOnHandNumeric"],
+      "dates_mdy": ["bankReportEndDate"],
+      "newest_column": "bankReportEndDate",
+      "order_by": "receiptsYtdNumeric DESC",
+      "filters": {
+        "year": { "in": "path", "type": "integer" }
+      },
+      "suggestions": [
+        { "label": "Political action committees this year, biggest first", "needs": [], "filters": { "year": "$year" } }
+      ],
+      "notes": [
+        "Each row is one filer for the calendar year asked for. Receipts and expenditures are year to date, as reported up to bankReportEndDate, so two rows can cover different stretches of the year.",
+        "These are committees, not candidates, so officeSought and partyAffiliation are blank and a row says nothing about which race the money went to."
+      ]
+    }
+  ]
+}

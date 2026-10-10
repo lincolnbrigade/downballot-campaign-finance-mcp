@@ -1,0 +1,45 @@
+name: verify sources
+# Checks every registry entry against its live publisher once a month, and on
+# demand. Publishers rename and retire datasets without notice. A failure opens
+# an issue (or adds to the open one) instead of failing silently.
+on:
+  schedule:
+    - cron: "17 14 3 * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+  issues: write
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Check the registry against the live publishers
+        id: verify
+        run: |
+          set -o pipefail
+          node tests/verify-jurisdiction-sources.mjs | tee verify.log
+      - name: Report a failed check
+        if: failure() && steps.verify.conclusion == 'failure'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "The monthly check of the source registry found a problem. Until it is resolved, treat the affected source with care and do not change \`verified_on\`."
+            echo
+            echo "Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo
+            echo '```'
+            grep -B12 "FAIL" verify.log | tail -60 || tail -40 verify.log
+            echo '```'
+          } > body.md
+          gh label create registry-check --color B60205 --description "A source failed its live check" --force
+          open_issue=$(gh issue list --label registry-check --state open --json number --jq '.[0].number')
+          if [ -n "$open_issue" ]; then
+            gh issue comment "$open_issue" --body-file body.md
+          else
+            gh issue create --title "Source registry check failed" --label registry-check --body-file body.md
+          fi
