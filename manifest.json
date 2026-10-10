@@ -1,0 +1,65 @@
+{
+  "manifest_version": "0.3",
+  "name": "downballot-campaign-finance-mcp",
+  "display_name": "Down-ballot campaign finance",
+  "version": "0.5.0",
+  "description": "Find the districts for a US street address and read state and local campaign-finance totals. Totals only, never donors.",
+  "long_description": "A read-only MCP server for down-ballot races: state legislature, county, city and school board. Give it a street address and it returns the districts, using the US Census Bureau's public geocoder. Where one of its live-verified public sources covers the address, it returns totals for candidates and committees. Where none does, it says so and helps the assistant find the regulator on its official site. It never returns individual donors, never names a regulator from memory, and gives no legal or compliance advice. No API key, no account, no dependencies.",
+  "author": {
+    "name": "downballot-campaign-finance-mcp contributors",
+    "url": "https://github.com/lincolnbrigade/downballot-campaign-finance-mcp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/lincolnbrigade/downballot-campaign-finance-mcp"
+  },
+  "homepage": "https://github.com/lincolnbrigade/downballot-campaign-finance-mcp",
+  "documentation": "https://github.com/lincolnbrigade/downballot-campaign-finance-mcp#readme",
+  "support": "https://github.com/lincolnbrigade/downballot-campaign-finance-mcp/issues",
+  "license": "MIT",
+  "keywords": [
+    "campaign-finance",
+    "elections",
+    "open-data",
+    "civic-tech",
+    "districts"
+  ],
+  "server": {
+    "type": "node",
+    "entry_point": "servers/jurisdiction/index.js",
+    "mcp_config": {
+      "command": "node",
+      "args": [
+        "${__dirname}/servers/jurisdiction/index.js"
+      ]
+    }
+  },
+  "tools": [
+    {
+      "name": "jx_status",
+      "description": "Report what is connected and when it was last verified. Makes no network call."
+    },
+    {
+      "name": "jx_locate",
+      "description": "Turn a street address into its districts, say which connected sources apply, and suggest calls for them."
+    },
+    {
+      "name": "jx_sources",
+      "description": "List the connected state and local sources, for everything or for one state."
+    },
+    {
+      "name": "jx_race_totals",
+      "description": "Totals from one connected source, biggest first. Candidates and committees only, never donors."
+    }
+  ],
+  "compatibility": {
+    "platforms": [
+      "darwin",
+      "win32",
+      "linux"
+    ],
+    "runtimes": {
+      "node": ">=18.0.0"
+    }
+  }
+}

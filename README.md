@@ -43,13 +43,19 @@ Everywhere else is not connected. For most addresses that is the expected answer
 
 ## Quick start
 
-You need Node.js 18 or later. There is nothing to install.
+### In the Claude desktop app, with no terminal
+
+Download the `.mcpb` file from the [latest release](https://github.com/lincolnbrigade/downballot-campaign-finance-mcp/releases/latest), open it, and click Install. The app runs the server with its own copy of Node, so you do not need Node installed. Then ask, in a new chat, "check the jurisdiction connection".
+
+### In any other MCP client
+
+You need Node.js 18 or later. There is nothing to install beyond cloning the repository.
 
 ```bash
 git clone https://github.com/lincolnbrigade/downballot-campaign-finance-mcp.git
 ```
 
-Then add the server to your MCP client. For clients that use an `mcpServers` block:
+Then add the server to your client. For clients that use an `mcpServers` block:
 
 ```json
 {
@@ -157,6 +163,7 @@ servers/jurisdiction/sources.json   the registry of sources
 skills/jurisdiction-finder/         the optional skill
 tests/                              tests, fixtures and the live verify script
 docs/adding-a-source.md             how to add a source
+manifest.json, scripts/build-mcpb.mjs  the one-click bundle for the Claude desktop app
 ```
 
 ## Licence
