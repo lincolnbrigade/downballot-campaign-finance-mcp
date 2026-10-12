@@ -1,24 +1,24 @@
 # downballot-campaign-finance-mcp
 
-A read-only MCP server for down-ballot races in the United States: state legislature, county, city and school board.
+A read-only MCP server for down-ballot races in the United States: state legislature, county, city and school board. It's kind of limited because not a lot of down-ballot jurisdictions have easily accessible campaign finance data. Hopefully that continues to improve over time.
 
-Give it a street address and it returns the state, county, city, school district, congressional district and both state legislative districts, using the US Census Bureau's public geocoder.
+The MCP server lets you give an AI assistant a street address and returns the state, county, city, school district, congressional district and both state legislative districts, using the US Census Bureau's public geocoder.
 
-It also holds a small registry of state and local campaign-finance datasets, each checked against the live publisher. Where a source covers the address, the server returns totals for candidates and committees. Where none does, it says so and helps the assistant find the regulator on its official site.
+It also holds a small registry of state and local campaign-finance datasets which are checked against the live publisher. Where a source covers the address, the server returns totals for candidates and committees. If it doesn't it says so and helps the AI assistant find the regulator on its official site.
 
-It needs no API key and has no dependencies. The whole server is one Node.js file and one JSON registry.
+This MCP doesn't need any API keys and has no dependencies. The whole server is one Node.js file and one JSON registry.
 
-This is not legal or compliance advice, and the server will not give any. A campaign is responsible for its own compliance.
+This is *not* legal or compliance advice. A campaign is responsible for its own compliance.
 
 ## What it will not do
 
-It will not return individual donors. Results hold totals and the names of candidates and committees, and there is no way to ask for contributor names, employers or addresses. The section on [how "totals only" is enforced](#how-totals-only-is-enforced) explains why.
+It doesn't return individual donors. Results hold totals and the names of candidates and committees, and there is no way to ask for contributor names, employers or addresses. The section on [how "totals only" is enforced](#how-totals-only-is-enforced) explains why.
 
-It will not name a regulator from memory. Every publisher name is copied word for word from the dataset's own record. Most states are not connected, and for those the server returns search wording and tells the assistant to open the official site.
+It doesn't name a regulator from memory. Every regulator's name is copied word for word from the dataset's own record. Most states are not connected and for those the server returns search wording and tells the assistant to open the official Secretary of State (or similar) site.
 
-It has no data on filing rules, deadlines or contribution limits, so it will not state them.
+It has no data on filing rules, deadlines or contribution limits, so it will not state them (no compliance advice!).
 
-It does not cover federal races. Federal data is at the FEC, and several open-source FEC servers already exist. `jx_locate` does name the federal race for an address so another tool can pick it up, and it mentions three tool names (`fec_race_money` and two others) that belong to a separate FEC connector, not to this one.
+It doesn't cover federal races. Federal data lives at the FEC, and several open-source FEC servers already exist. `jx_locate` does name the federal race for an address so another tool can pick it up, and it mentions three tool names (`fec_race_money` and two others) that belong to a separate FEC connector, not to this one.
 
 ## Connected sources
 
