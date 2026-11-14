@@ -93,7 +93,7 @@ const CARTO_OVERRIDE = envVar("JX_CARTO_BASE").replace(/\/$/, "");
 const ARCGIS_OVERRIDE = envVar("JX_ARCGIS_BASE").replace(/\/$/, "");
 const OCPF_OVERRIDE = envVar("JX_OCPF_BASE").replace(/\/$/, "");
 const SERVER_NAME = "jurisdiction";
-const SERVER_VERSION = "0.5.0";
+const SERVER_VERSION = "0.6.0";
 
 const INSTRUCTIONS = [
   "Rules for this connection:",

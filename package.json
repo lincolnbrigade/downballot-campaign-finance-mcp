@@ -1,6 +1,6 @@
 {
   "name": "downballot-campaign-finance-mcp",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A read-only MCP server for down-ballot (state and local) races in the US: find the districts for an address, then read campaign-finance totals from a small registry of live-verified public sources. Totals only, never donors.",
   "license": "MIT",
   "bin": {

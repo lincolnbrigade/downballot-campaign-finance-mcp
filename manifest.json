@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "downballot-campaign-finance-mcp",
   "display_name": "Down-ballot campaign finance",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Find the districts for a US street address and read state and local campaign-finance totals. Totals only, never donors.",
   "long_description": "A read-only MCP server for down-ballot races: state legislature, county, city and school board. Give it a street address and it returns the districts, using the US Census Bureau's public geocoder. Where one of its live-verified public sources covers the address, it returns totals for candidates and committees. Where none does, it says so and helps the assistant find the regulator on its official site. It never returns individual donors, never names a regulator from memory, and gives no legal or compliance advice. No API key, no account, no dependencies.",
   "author": {
