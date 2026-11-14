@@ -518,12 +518,25 @@ function buildCartoSql(source, filters, limit) {
   return `SELECT ${source.select.join(", ")} FROM ${source.dataset}${where.length ? ` WHERE ${where.join(" AND ")}` : ""} ORDER BY ${column} ${direction} NULLS LAST LIMIT ${limit}`;
 }
 
+// Philadelphia's Carto server now and then answers 400 or 5xx to a query that
+// works a moment later (issue #1). Try once more before calling it a failure.
+// A missing-column error is a real change and is not retried.
+async function cartoJson(url, label) {
+  try {
+    return await getJson(url, label);
+  } catch (err) {
+    if (!/ returned (400|5\d\d):/.test(err.message)) throw err;
+    await new Promise((r) => setTimeout(r, 1000));
+    return getJson(url, label);
+  }
+}
+
 async function runCarto(source, sql) {
   const url = (q) => `${cartoBase(source)}/api/v2/sql?${new URLSearchParams({ q })}`;
   const [answer, fresh] = await Promise.all([
-    getJson(url(sql), `${source.domain}`),
+    cartoJson(url(sql), `${source.domain}`),
     source.freshness_column
-      ? getJson(url(`SELECT max(${source.freshness_column}) AS latest FROM ${source.dataset}`), `${source.domain} freshness`).catch(() => null)
+      ? cartoJson(url(`SELECT max(${source.freshness_column}) AS latest FROM ${source.dataset}`), `${source.domain} freshness`).catch(() => null)
       : null,
   ]);
   if (!Array.isArray(answer?.rows)) throw new ApiError(`${source.domain} answered without a rows list, so the publisher has changed how it responds. The registry entry needs re-verifying (tests/verify-jurisdiction-sources.mjs).`);

@@ -43,8 +43,14 @@ const say = (ok, msg) => {
 };
 
 // Carto: the SQL API at https://<domain>/api/v2/sql?q=...
-const carto = async (s, sql) => {
+// Retried once on 400 or 5xx: Philadelphia's server answers those intermittently
+// to queries that work a moment later, and one blip should not open an issue (#1).
+const carto = async (s, sql, retry = true) => {
   const r = await fetch(`https://${s.domain}/api/v2/sql?${new URLSearchParams({ q: sql })}`, { signal: AbortSignal.timeout(60000) });
+  if (retry && (r.status === 400 || r.status >= 500)) {
+    await new Promise((res) => setTimeout(res, 2000));
+    return carto(s, sql, false);
+  }
   return { ok: r.ok, status: r.status, body: r.ok ? await r.json() : null };
 };
 

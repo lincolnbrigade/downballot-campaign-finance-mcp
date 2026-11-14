@@ -434,6 +434,24 @@ test("carto race totals: the SQL is built from the registry, and the result says
   });
 });
 
+test("carto race totals: one intermittent 400 is retried, a second one is reported", async () => {
+  const seen = {};
+  const flaky = (times) => ({ sql, body }) => ((seen[sql] = (seen[sql] || 0) + 1) <= times ? { status: 400, body: { error: ["temporary"] } } : { body });
+  await withJx(async (call) => {
+    const r = await call("jx_race_totals", { source_id: "phl-campfin-summary", filters: { report_year: 2023 }, limit: 6 });
+    assert.ok(!r.isError, r.text);
+    assert.equal(r.json.returned, 6);
+    assert.equal(r.json.newest_report_date, "2026-09-14", "the freshness query is retried too");
+    assert.ok(Object.values(seen).every((n) => n === 2), "each query was sent exactly twice");
+  }, { carto: flaky(1) });
+  for (const k of Object.keys(seen)) delete seen[k];
+  await withJx(async (call) => {
+    const r = await call("jx_race_totals", { source_id: "phl-campfin-summary", filters: { report_year: 2023 }, limit: 6 });
+    assert.ok(r.isError, "two 400s in a row is a real failure");
+    assert.match(r.text, /returned 400/);
+  }, { carto: flaky(2) });
+});
+
 test("carto race totals: every query carries the fixed filer-type list, so private individuals and businesses are never returned", async () => {
   await withJx(async (call, mock) => {
     for (const filters of [{}, { report_year: 2026 }, { filer_type: "union" }, { office_level: "local" }]) {
