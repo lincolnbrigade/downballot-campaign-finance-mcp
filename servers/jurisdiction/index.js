@@ -448,7 +448,9 @@ function buildQuery(source, filters, limit) {
   } else {
     q.set("$select", source.select.join(","));
   }
-  q.set("$order", source.order_by);
+  // Socrata sorts nulls first on DESC, which floats filers with no money reported
+  // above the real totals. NULL LAST keeps empties at the bottom, like sortRows.
+  q.set("$order", `${source.order_by} NULL LAST`);
   q.set("$limit", String(limit));
   return q;
 }

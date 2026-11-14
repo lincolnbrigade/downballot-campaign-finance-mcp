@@ -251,7 +251,7 @@ for (const s of reg.sources) {
     q.set("$select", [...s.group_by, ...s.measures.map((m) => (m.fn === "count" ? `count(*) as ${m.as}` : `${m.fn}(${m.column}) as ${m.as}`))].join(","));
     q.set("$group", s.group_by.join(","));
   } else q.set("$select", s.select.join(","));
-  q.set("$order", s.order_by);
+  q.set("$order", `${s.order_by} NULL LAST`);
   q.set("$limit", "1");
   try {
     const r = await fetch(`https://${s.domain}/resource/${s.dataset}.json?${q}`, { signal: AbortSignal.timeout(60000) });
