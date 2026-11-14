@@ -280,11 +280,59 @@ test("race totals: an unfiltered query warns that old cycles are mixed in, and a
     const hi = await call("jx_race_totals", { source_id: "hi-csc-contributions" });
     assert.match(hi.json.notes[0], /No election_period filter was set.*2016-2020 to 2020-2024.*the biggest are often old/, "the range actually returned is named");
     const nyc = await call("jx_race_totals", { source_id: "nyc-cfb-analysis" });
-    assert.match(nyc.json.notes[0], /el_cycle.*2001 to 2009/);
+    assert.match(nyc.json.notes[0], /el_cycle.*2001 to 2025/);
     const au = await call("jx_race_totals", { source_id: "austin-contributions" });
     assert.match(au.json.notes[0], /contribution_year filter was set, so this covers every period/, "a source that doesn't return the cycle column still gets a warning");
     const wa = await call("jx_race_totals", { source_id: "wa-pdc-summary", filters: { election_year: 2026 } });
     assert.doesNotMatch(wa.json.notes.join(" "), /filter was set/, "no warning once the cycle is pinned");
+  });
+});
+
+test("race totals: NYC keeps each candidate's latest statement range, fetched whole and cut after", async () => {
+  await withJx(async (call, mock) => {
+    const r = await call("jx_race_totals", { source_id: "nyc-cfb-analysis", filters: { el_cycle: "2025" }, limit: 6 });
+    assert.ok(!r.isError, r.text);
+    const j = r.json;
+    const q = mock.seen.find((s) => s.path === "/resource/m3tj-a2pb.json").query;
+    assert.equal(q.$limit, "10000", "the whole filtered set is fetched, not the top N, so a latest row can't fall outside the window");
+    const ids = j.rows.map((row) => `${row.el_cycle}/${row.cand_id}`);
+    assert.equal(new Set(ids).size, ids.length, "one row per candidate per cycle");
+    const adams = j.rows.find((row) => row.cand_id === "1545");
+    assert.equal(adams.to_stmt, 15, "to_stmt compared as a number: 15 beats 7");
+    assert.equal(adams.net_cntns, 6708279.99);
+    const refund = j.rows.find((row) => row.cand_id === "2921");
+    assert.equal(refund.to_stmt, 15, "the latest row wins even when its total is lower");
+    assert.equal(refund.net_cntns, 0);
+    // The mock ignores the filter: 9 recorded rows, 6 candidates once the 3 earlier rows go.
+    assert.equal(j.returned, 6);
+    assert.equal(j.may_be_more, undefined, "all 6 fit, so nothing more is claimed even though 9 rows came back");
+    assert.match(j.notes.join(" "), /3 earlier rows were left out/);
+    assert.match(j.notes.join(" "), /do not call one the primary and one the general/);
+    assert.match(j.notes.join(" "), /1=Mayor; 2=Public Advocate; 3=Comptroller; 4=Borough President; 5=City Council; 6=Undeclared/, "the publisher's own office codes travel with the data");
+  });
+});
+
+test("race totals: NYC office filter is matched after the dedupe, so a candidate who changed office is not shown with a stale row", async () => {
+  await withJx(async (call, mock) => {
+    // Candidate 1682: statements 1-7 under office 3, statements 1-15 under office 2.
+    const old = await call("jx_race_totals", { source_id: "nyc-cfb-analysis", filters: { el_cycle: "2025", office: "3" } });
+    assert.ok(!old.isError, old.text);
+    const q = mock.seen.find((s) => s.path === "/resource/m3tj-a2pb.json").query;
+    assert.equal(q.el_cycle, "2025", "the key column still goes to the publisher");
+    assert.equal(q.office, undefined, "a non-key filter is not sent, or the latest row would never arrive");
+    assert.ok(!old.json.rows.some((row) => row.cand_id === "1682"), "not listed under the office of a stale row");
+    assert.ok(old.json.rows.every((row) => row.office === "3"));
+    const now = await call("jx_race_totals", { source_id: "nyc-cfb-analysis", filters: { el_cycle: "2025", office: "2" } });
+    const raj = now.json.rows.find((row) => row.cand_id === "1682");
+    assert.equal(raj.to_stmt, 15);
+    assert.equal(raj.net_cntns, 490908.42);
+  });
+});
+
+test("race totals: other Socrata sources still ask for just the rows they return", async () => {
+  await withJx(async (call, mock) => {
+    await call("jx_race_totals", { source_id: "hi-csc-contributions", limit: 7 });
+    assert.equal(mock.seen.find((s) => s.path === "/resource/jexd-xbcg.json").query.$limit, "7");
   });
 });
 
@@ -411,7 +459,7 @@ test("carto race totals: the SQL is built from the registry, and the result says
     const j = r.json;
     const [main, fresh] = [cartoSql(mock).find((q) => !/^SELECT max/.test(q)), cartoSql(mock).find((q) => /^SELECT max/.test(q))];
     assert.equal(main, `SELECT ${PHL_SELECT} FROM campfin_summary WHERE ${PHL_FILERS} AND report_year = 2023 AND candidate_office = 'Mayor' ORDER BY total_contributions DESC NULLS LAST LIMIT 6`, "the caller typed 'mayor'; the SQL carries the registry's 'Mayor'");
-    assert.equal(fresh, "SELECT max(last_report_date) AS latest FROM campfin_summary");
+    assert.equal(fresh, "SELECT max(last_report_date) FILTER (WHERE last_report_date <= now()) AS latest, count(*) FILTER (WHERE last_report_date > now()) AS future FROM campfin_summary", "a report dated after today can't set the newest date");
     assert.equal(cartoSql(mock).length, 2, "one totals query and one freshness query, nothing else");
     assert.doesNotMatch(main, /entity|employer|occupation|address|zip|campfin_(transactions|contributions|expenditures)/i, "no person-level column and no transaction table");
 
@@ -426,12 +474,31 @@ test("carto race totals: the SQL is built from the registry, and the result says
     assert.equal(j.registry_drift, undefined);
     const notes = j.notes.join(" ");
     assert.match(notes, /does not say when the table was last refreshed. The newest report in it is dated 2026-09-14/);
+    assert.match(notes, /1 filer's last report is dated after today, which is likely a filing error/, "a future-dated row is called out, not hidden");
     assert.match(notes, /carries no publisher credit with the data.*was not re-checked on this call/);
     assert.match(notes, /num_paper_filings counts reports the filer submitted on paper/);
     assert.match(notes, /city or portal credit and not an agency/);
     assert.match(notes, /an empty candidate_office does not mean the filer has no race/);
     assert.doesNotMatch(notes, /filter was set/, "no cycle warning once report_year is pinned");
   });
+});
+
+test("carto race totals: one intermittent 400 is retried, a second one is reported", async () => {
+  const seen = {};
+  const flaky = (times) => ({ sql, body }) => ((seen[sql] = (seen[sql] || 0) + 1) <= times ? { status: 400, body: { error: ["temporary"] } } : { body });
+  await withJx(async (call) => {
+    const r = await call("jx_race_totals", { source_id: "phl-campfin-summary", filters: { report_year: 2023 }, limit: 6 });
+    assert.ok(!r.isError, r.text);
+    assert.equal(r.json.returned, 6);
+    assert.equal(r.json.newest_report_date, "2026-09-14", "the freshness query is retried too");
+    assert.ok(Object.values(seen).every((n) => n === 2), "each query was sent exactly twice");
+  }, { carto: flaky(1) });
+  for (const k of Object.keys(seen)) delete seen[k];
+  await withJx(async (call) => {
+    const r = await call("jx_race_totals", { source_id: "phl-campfin-summary", filters: { report_year: 2023 }, limit: 6 });
+    assert.ok(r.isError, "two 400s in a row is a real failure");
+    assert.match(r.text, /returned 400/);
+  }, { carto: flaky(2) });
 });
 
 test("carto race totals: every query carries the fixed filer-type list, so private individuals and businesses are never returned", async () => {
@@ -862,6 +929,8 @@ test("a registry entry without its publisher's terms, or with a condition that i
     [(s) => (s.terms.source = "the dataset page"), /terms\.source must be a web address/],
     [(s) => (s.terms.condition = true), /terms\.condition must be the publisher's words or null/],
     [(s) => (s.terms.summary = ""), /terms\.summary is missing/],
+    [(s) => (s.latest_per.by = "cand_name"), /latest_per\.by must be a numeric column/],
+    [(s) => (s.latest_per.key = ["from_stmt"]), /latest_per\.key must list columns in select/],
   ];
   for (const [i, [breakIt, expected]] of cases.entries()) {
     const reg = read();

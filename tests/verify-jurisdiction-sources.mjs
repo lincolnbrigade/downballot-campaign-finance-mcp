@@ -43,8 +43,14 @@ const say = (ok, msg) => {
 };
 
 // Carto: the SQL API at https://<domain>/api/v2/sql?q=...
-const carto = async (s, sql) => {
+// Retried once on 400 or 5xx: Philadelphia's server answers those intermittently
+// to queries that work a moment later, and one blip should not open an issue (#1).
+const carto = async (s, sql, retry = true) => {
   const r = await fetch(`https://${s.domain}/api/v2/sql?${new URLSearchParams({ q: sql })}`, { signal: AbortSignal.timeout(60000) });
+  if (retry && (r.status === 400 || r.status >= 500)) {
+    await new Promise((res) => setTimeout(res, 2000));
+    return carto(s, sql, false);
+  }
   return { ok: r.ok, status: r.status, body: r.ok ? await r.json() : null };
 };
 
@@ -102,10 +108,12 @@ async function verifyCarto(s) {
     const r = await carto(s, `SELECT ${s.select.join(", ")} FROM ${s.dataset}${where ? ` WHERE ${where}` : ""} ORDER BY ${s.order_by} NULLS LAST LIMIT 1`);
     say(r.ok && r.body.rows.length === 1, `one-row query answers (${r.status}, ${r.ok ? r.body.rows.length : 0} row)`);
     if (s.freshness_column) {
-      const f = await carto(s, `SELECT max(${s.freshness_column}) AS latest FROM ${s.dataset}`);
+      const c = s.freshness_column;
+      const f = await carto(s, `SELECT max(${c}) FILTER (WHERE ${c} <= now()) AS latest, count(*) FILTER (WHERE ${c} > now()) AS future FROM ${s.dataset}`);
       const latest = f.ok ? f.body.rows[0]?.latest : null;
       say(Boolean(latest), `newest report date answers`);
       if (latest) console.log(`       newest report dated ${String(latest).slice(0, 10)}`);
+      if (f.ok && Number(f.body.rows[0]?.future)) console.log(`       ${f.body.rows[0].future} row(s) dated after today, left out of the newest date`);
     }
   } catch (e) {
     say(false, `query failed: ${e.message}`);
