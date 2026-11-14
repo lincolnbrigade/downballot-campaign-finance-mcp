@@ -256,6 +256,7 @@ test("race totals: rows are fixed-column, numbers are numbers, and the source is
     assert.equal(q.election_year, "2026");
     assert.equal(q.legislative_district, "43");
     assert.equal(q.$limit, "5");
+    assert.equal(q.$order, "contributions_amount DESC NULL LAST", "Socrata puts nulls first on DESC; empty totals must sort last");
     assert.doesNotMatch(q.$select, /contributor|donor|employer|occupation|address|phone|email|treasurer/i, "the select list is fixed and holds no person-level column");
     assert.equal(Object.keys(q).filter((k) => k.startsWith("$")).sort().join(), "$limit,$order,$select");
   });
