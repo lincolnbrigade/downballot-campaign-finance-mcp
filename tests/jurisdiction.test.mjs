@@ -290,7 +290,7 @@ test("race totals: an unfiltered query warns that old cycles are mixed in, and a
 
 test("race totals: NYC keeps each candidate's latest statement range, fetched whole and cut after", async () => {
   await withJx(async (call, mock) => {
-    const r = await call("jx_race_totals", { source_id: "nyc-cfb-analysis", filters: { el_cycle: "2025" }, limit: 5 });
+    const r = await call("jx_race_totals", { source_id: "nyc-cfb-analysis", filters: { el_cycle: "2025" }, limit: 6 });
     assert.ok(!r.isError, r.text);
     const j = r.json;
     const q = mock.seen.find((s) => s.path === "/resource/m3tj-a2pb.json").query;
@@ -303,11 +303,28 @@ test("race totals: NYC keeps each candidate's latest statement range, fetched wh
     const refund = j.rows.find((row) => row.cand_id === "2921");
     assert.equal(refund.to_stmt, 15, "the latest row wins even when its total is lower");
     assert.equal(refund.net_cntns, 0);
-    // The mock ignores the filter: 7 recorded rows, 5 candidates once the 2 earlier rows go.
-    assert.equal(j.returned, 5);
-    assert.equal(j.may_be_more, undefined, "all 5 fit, so nothing more is claimed even though 7 rows came back");
-    assert.match(j.notes.join(" "), /2 earlier rows were left out/);
+    // The mock ignores the filter: 9 recorded rows, 6 candidates once the 3 earlier rows go.
+    assert.equal(j.returned, 6);
+    assert.equal(j.may_be_more, undefined, "all 6 fit, so nothing more is claimed even though 9 rows came back");
+    assert.match(j.notes.join(" "), /3 earlier rows were left out/);
     assert.match(j.notes.join(" "), /do not call one the primary and one the general/);
+  });
+});
+
+test("race totals: NYC office filter is matched after the dedupe, so a candidate who changed office is not shown with a stale row", async () => {
+  await withJx(async (call, mock) => {
+    // Candidate 1682: statements 1-7 under office 3, statements 1-15 under office 2.
+    const old = await call("jx_race_totals", { source_id: "nyc-cfb-analysis", filters: { el_cycle: "2025", office: "3" } });
+    assert.ok(!old.isError, old.text);
+    const q = mock.seen.find((s) => s.path === "/resource/m3tj-a2pb.json").query;
+    assert.equal(q.el_cycle, "2025", "the key column still goes to the publisher");
+    assert.equal(q.office, undefined, "a non-key filter is not sent, or the latest row would never arrive");
+    assert.ok(!old.json.rows.some((row) => row.cand_id === "1682"), "not listed under the office of a stale row");
+    assert.ok(old.json.rows.every((row) => row.office === "3"));
+    const now = await call("jx_race_totals", { source_id: "nyc-cfb-analysis", filters: { el_cycle: "2025", office: "2" } });
+    const raj = now.json.rows.find((row) => row.cand_id === "1682");
+    assert.equal(raj.to_stmt, 15);
+    assert.equal(raj.net_cntns, 490908.42);
   });
 });
 

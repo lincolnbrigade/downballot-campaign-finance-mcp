@@ -111,7 +111,7 @@
       "notes": [
         "office is a numeric code and boro_dist a coded string. The dataset's metadata does not define either, so read the publisher's own documentation before translating them.",
         "The most recent cycle in the data may lag. Check el_cycle and ask for it explicitly. Pass el_cycle as text, for example 2025.",
-        "Every row's totals run from statement 1 to to_stmt, so a later row includes an earlier one. In 2025 most candidates had two rows (statements 1 to 7 and 1 to 15). Only each candidate's row with the highest to_stmt is returned; the publisher does not say what each range stands for, so do not call one the primary and one the general."
+        "Every row's totals run from statement 1 to to_stmt, so a later row includes an earlier one. In 2025 most candidates had two rows (statements 1 to 7 and 1 to 15). Only each candidate's row with the highest to_stmt is returned; the publisher does not say what each range stands for, so do not call one the primary and one the general. A few candidates' rows differ in office or district; such a candidate is listed only under the office and district on their latest row, and the office, boro_dist and incumbent filters are matched against that row."
       ]
     },
     {

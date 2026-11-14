@@ -441,11 +441,16 @@ function filterValue(source, k, v) {
   return s;
 }
 
-function buildQuery(source, filters, limit) {
+function buildQuery(source, filters, limit, local = {}) {
   const q = new URLSearchParams();
   for (const [k, v] of Object.entries(filters || {})) {
     const value = filterValue(source, k, v);
-    q.set(source.filters[k].column, value);
+    const column = source.filters[k].column;
+    // On a latest_per source only the key columns go to the publisher. Any other
+    // filter is applied after the dedupe: a candidate whose latest row moved to
+    // another office must not come back under the old one with a stale total.
+    if (source.latest_per && !source.latest_per.key.includes(column)) local[column] = value;
+    else q.set(column, value);
   }
   if (source.mode === "grouped") {
     const measures = source.measures.map((m) => (m.fn === "count" ? `count(*) as ${m.as}` : `${m.fn}(${m.column}) as ${m.as}`));
@@ -495,7 +500,7 @@ function shapeRows(source, rows) {
   });
 }
 
-async function runSocrata(source, { query, limit }) {
+async function runSocrata(source, { query, limit, local = {} }) {
   const base = datasetBase(source);
   const [fetched, view] = await Promise.all([
     getJson(`${base}/resource/${source.dataset}.json?${query}`, `${source.domain}`),
@@ -506,8 +511,9 @@ async function runSocrata(source, { query, limit }) {
   let more;
   const notes = [];
   if (source.latest_per) {
-    const latest = latestPer(fetched, source.latest_per);
-    const dropped = fetched.length - latest.length;
+    const deduped = latestPer(fetched, source.latest_per);
+    const dropped = fetched.length - deduped.length;
+    const latest = deduped.filter((r) => Object.entries(local).every(([c, v]) => String(r[c] ?? "") === v));
     if (dropped) notes.push(`${dropped} earlier ${dropped === 1 ? "row was" : "rows were"} left out: ${dropped === 1 ? "it covers" : "they cover"} a shorter run of statements for a candidate who also has a later row.`);
     if (fetched.length >= FETCH_ALL) notes.push(`The publisher had more than ${FETCH_ALL} matching rows, so not every candidate was checked for a later row. Narrow the filters.`);
     more = latest.length > limit || fetched.length >= FETCH_ALL;
@@ -752,7 +758,13 @@ async function runOcpf(source, { limit, local, year, path }) {
 // One entry per publishing platform. prepare() validates the filters and builds the
 // request without sending anything; run() sends it and reports what it could re-check.
 const PLATFORMS = {
-  socrata: { prepare: (source, filters, limit) => ({ query: buildQuery(source, filters, limit), limit }), run: runSocrata },
+  socrata: {
+    prepare: (source, filters, limit) => {
+      const local = {};
+      return { query: buildQuery(source, filters, limit, local), limit, local };
+    },
+    run: runSocrata,
+  },
   carto: { prepare: buildCartoSql, run: runCarto },
   arcgis: { prepare: buildArcgisQuery, run: runArcgis },
   ocpf: { prepare: buildOcpfRequest, run: runOcpf },

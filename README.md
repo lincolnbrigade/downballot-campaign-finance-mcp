@@ -28,7 +28,7 @@ The registry holds ten sources. All ten were last checked against their live pub
 |---|---|---|---|
 | Washington State | One summary row per campaign or committee per election year, with office and jurisdiction | Public Disclosure Commission | Socrata |
 | Hawaii | Contributions to state and county candidates, totalled per candidate per election period | State of Hawaii; Campaign Spending Commission | Socrata |
-| New York City | Financial analysis, one row per candidate per election cycle | Campaign Finance Board (CFB) | Socrata |
+| New York City | Financial analysis per candidate per election cycle, latest statement range only | Campaign Finance Board (CFB) | Socrata |
 | Austin, TX | Contributions totalled per recipient | City of Austin, Texas - data.austintexas.gov (a portal credit; the record's ownership field names the Austin City Clerk's Office) | Socrata |
 | Philadelphia, PA | Each filer's yearly totals: contributions, spending, cash and debts | City of Philadelphia (a city credit, not an agency) | Carto |
 | District of Columbia | Contributions totalled per committee per election year | Office of Campaign Finance | ArcGIS |

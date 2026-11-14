@@ -48,6 +48,8 @@ An `enum` filter lists its allowed `values` in the registry. The server matches 
 
 `require_in` (Carto and ArcGIS) is a fixed condition that every query carries. Use it to leave out kinds of row, such as filers who are private individuals.
 
+`latest_per` (Socrata, rows mode) is for a dataset that holds several snapshots of the same campaign. Give it the `key` columns that identify one campaign and a numeric `by` column, such as `{ "key": ["el_cycle", "cand_id"], "by": "to_stmt" }`. The server then fetches every row that matches the key filters and keeps the one with the highest `by` for each key. After that it applies the other filters and cuts the list to the limit. Filtering or cutting first would let an older snapshot stand in for the latest one.
+
 ## What the server refuses at start-up
 
 - A column name matching contributor, donor, employer, occupation, address, phone, email, street, zip or treasurer, anywhere in the entry.
