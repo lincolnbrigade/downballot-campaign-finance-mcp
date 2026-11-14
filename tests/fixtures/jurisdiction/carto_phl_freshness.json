@@ -1,1 +1,1 @@
-{"rows":[{"latest":"2026-09-14T04:00:00Z"}],"time":0.549,"fields":{"latest":{"type":"date","pgtype":"timestamptz"}},"total_rows":1}
+{"rows": [{"latest": "2026-09-14T04:00:00Z", "future": 1}], "time": 0.549, "fields": {"latest": {"type": "date", "pgtype": "timestamptz"}, "future": {"type": "number", "pgtype": "int8"}}, "total_rows": 1}

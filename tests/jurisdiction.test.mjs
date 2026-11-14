@@ -459,7 +459,7 @@ test("carto race totals: the SQL is built from the registry, and the result says
     const j = r.json;
     const [main, fresh] = [cartoSql(mock).find((q) => !/^SELECT max/.test(q)), cartoSql(mock).find((q) => /^SELECT max/.test(q))];
     assert.equal(main, `SELECT ${PHL_SELECT} FROM campfin_summary WHERE ${PHL_FILERS} AND report_year = 2023 AND candidate_office = 'Mayor' ORDER BY total_contributions DESC NULLS LAST LIMIT 6`, "the caller typed 'mayor'; the SQL carries the registry's 'Mayor'");
-    assert.equal(fresh, "SELECT max(last_report_date) AS latest FROM campfin_summary");
+    assert.equal(fresh, "SELECT max(last_report_date) FILTER (WHERE last_report_date <= now()) AS latest, count(*) FILTER (WHERE last_report_date > now()) AS future FROM campfin_summary", "a report dated after today can't set the newest date");
     assert.equal(cartoSql(mock).length, 2, "one totals query and one freshness query, nothing else");
     assert.doesNotMatch(main, /entity|employer|occupation|address|zip|campfin_(transactions|contributions|expenditures)/i, "no person-level column and no transaction table");
 
@@ -474,6 +474,7 @@ test("carto race totals: the SQL is built from the registry, and the result says
     assert.equal(j.registry_drift, undefined);
     const notes = j.notes.join(" ");
     assert.match(notes, /does not say when the table was last refreshed. The newest report in it is dated 2026-09-14/);
+    assert.match(notes, /1 filer's last report is dated after today, which is likely a filing error/, "a future-dated row is called out, not hidden");
     assert.match(notes, /carries no publisher credit with the data.*was not re-checked on this call/);
     assert.match(notes, /num_paper_filings counts reports the filer submitted on paper/);
     assert.match(notes, /city or portal credit and not an agency/);

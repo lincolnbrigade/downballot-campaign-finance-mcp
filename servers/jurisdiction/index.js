@@ -572,12 +572,20 @@ async function cartoJson(url, label) {
   }
 }
 
+// The newest report date, ignoring any dated after today: one Philadelphia filer
+// entered a report ending 2026-11-23 on 2026-11-13, which would make the whole
+// table look fresher than it is. Those rows are counted so the answer can say so.
+function cartoFreshnessSql(source) {
+  const c = source.freshness_column;
+  return `SELECT max(${c}) FILTER (WHERE ${c} <= now()) AS latest, count(*) FILTER (WHERE ${c} > now()) AS future FROM ${source.dataset}`;
+}
+
 async function runCarto(source, sql) {
   const url = (q) => `${cartoBase(source)}/api/v2/sql?${new URLSearchParams({ q })}`;
   const [answer, fresh] = await Promise.all([
     cartoJson(url(sql), `${source.domain}`),
     source.freshness_column
-      ? cartoJson(url(`SELECT max(${source.freshness_column}) AS latest FROM ${source.dataset}`), `${source.domain} freshness`).catch(() => null)
+      ? cartoJson(url(cartoFreshnessSql(source)), `${source.domain} freshness`).catch(() => null)
       : null,
   ]);
   if (!Array.isArray(answer?.rows)) throw new ApiError(`${source.domain} answered without a rows list, so the publisher has changed how it responds. The registry entry needs re-verifying (tests/verify-jurisdiction-sources.mjs).`);
@@ -586,6 +594,7 @@ async function runCarto(source, sql) {
   const notNumbers = (source.numeric || []).filter((c) => answer.fields?.[c] && answer.fields[c].type !== "number");
   if (notNumbers.length) drift.push(`The publisher no longer sends these as numbers: ${notNumbers.join(", ")}. Re-verify before relying on the totals.`);
   const latest = typeof fresh?.rows?.[0]?.latest === "string" ? fresh.rows[0].latest.slice(0, 10) : null;
+  const future = Number(fresh?.rows?.[0]?.future) || 0;
   if (source.freshness_column && !latest) drift.push("Could not read the newest report date, so the data's freshness was not re-checked this time.");
 
   return {
@@ -596,6 +605,7 @@ async function runCarto(source, sql) {
       latest
         ? `This platform does not say when the table was last refreshed. The newest report in it is dated ${latest}.`
         : "This platform does not say when the table was last refreshed.",
+      ...(future ? [`${future} ${future === 1 ? "filer's last report is" : "filers' last reports are"} dated after today, which is likely a filing error. ${future === 1 ? "It was" : "They were"} left out of the newest report date, but ${future === 1 ? "that row's" : "those rows'"} last_report_date is shown as filed.`] : []),
       `This platform carries no publisher credit with the data. The credit shown was read from ${source.dataset_url} on ${REGISTRY.verified_on} and was not re-checked on this call.`,
     ],
   };

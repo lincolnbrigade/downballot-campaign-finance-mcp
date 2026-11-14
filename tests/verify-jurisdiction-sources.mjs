@@ -108,10 +108,12 @@ async function verifyCarto(s) {
     const r = await carto(s, `SELECT ${s.select.join(", ")} FROM ${s.dataset}${where ? ` WHERE ${where}` : ""} ORDER BY ${s.order_by} NULLS LAST LIMIT 1`);
     say(r.ok && r.body.rows.length === 1, `one-row query answers (${r.status}, ${r.ok ? r.body.rows.length : 0} row)`);
     if (s.freshness_column) {
-      const f = await carto(s, `SELECT max(${s.freshness_column}) AS latest FROM ${s.dataset}`);
+      const c = s.freshness_column;
+      const f = await carto(s, `SELECT max(${c}) FILTER (WHERE ${c} <= now()) AS latest, count(*) FILTER (WHERE ${c} > now()) AS future FROM ${s.dataset}`);
       const latest = f.ok ? f.body.rows[0]?.latest : null;
       say(Boolean(latest), `newest report date answers`);
       if (latest) console.log(`       newest report dated ${String(latest).slice(0, 10)}`);
+      if (f.ok && Number(f.body.rows[0]?.future)) console.log(`       ${f.body.rows[0].future} row(s) dated after today, left out of the newest date`);
     }
   } catch (e) {
     say(false, `query failed: ${e.message}`);
