@@ -308,6 +308,7 @@ test("race totals: NYC keeps each candidate's latest statement range, fetched wh
     assert.equal(j.may_be_more, undefined, "all 6 fit, so nothing more is claimed even though 9 rows came back");
     assert.match(j.notes.join(" "), /3 earlier rows were left out/);
     assert.match(j.notes.join(" "), /do not call one the primary and one the general/);
+    assert.match(j.notes.join(" "), /1=Mayor; 2=Public Advocate; 3=Comptroller; 4=Borough President; 5=City Council; 6=Undeclared/, "the publisher's own office codes travel with the data");
   });
 });
 
