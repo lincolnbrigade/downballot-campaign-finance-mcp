@@ -1,3 +1,100 @@
-[{"el_cycle":"2009","cand_name":"Bloomberg, Michael (ID:605-NP)","cand_id":"605","office":"1","boro_dist":"()","net_cntns":"108375000","match_amt":"0","pubfnd_pmt":"0","net_expnd":"108371687.5","sml_amt":"0","i_amt":"0"}
-,{"el_cycle":"2005","cand_name":"Bloomberg, Michael (ID:605-NP)","cand_id":"605","office":"1","boro_dist":"()","net_cntns":"84155868","match_amt":"0","pubfnd_pmt":"0","net_expnd":"84587319","sml_amt":"0","i_amt":"0"}
-,{"el_cycle":"2001","cand_name":"Green, Mark (ID:A7-P)","cand_id":"A7","office":"1","boro_dist":"()","net_cntns":"11232542","match_amt":"1028322","pubfnd_pmt":"4534230","net_expnd":"16219861","sml_amt":"590091","i_amt":"1464132"}]
+[
+  {
+    "el_cycle": "2009",
+    "cand_name": "Bloomberg, Michael (ID:605-NP)",
+    "cand_id": "605",
+    "office": "1",
+    "boro_dist": "()",
+    "to_stmt": "16",
+    "net_cntns": "108375000",
+    "match_amt": "0",
+    "pubfnd_pmt": "0",
+    "net_expnd": "108371687.5",
+    "sml_amt": "0",
+    "i_amt": "0"
+  },
+  {
+    "el_cycle": "2005",
+    "cand_name": "Bloomberg, Michael (ID:605-NP)",
+    "cand_id": "605",
+    "office": "1",
+    "boro_dist": "()",
+    "to_stmt": "17",
+    "net_cntns": "84155868",
+    "match_amt": "0",
+    "pubfnd_pmt": "0",
+    "net_expnd": "84587319",
+    "sml_amt": "0",
+    "i_amt": "0"
+  },
+  {
+    "el_cycle": "2001",
+    "cand_name": "Green, Mark (ID:A7-P)",
+    "cand_id": "A7",
+    "office": "1",
+    "boro_dist": "()",
+    "to_stmt": "15",
+    "net_cntns": "11232542",
+    "match_amt": "1028322",
+    "pubfnd_pmt": "4534230",
+    "net_expnd": "16219861",
+    "sml_amt": "590091",
+    "i_amt": "1464132"
+  },
+  {
+    "el_cycle": "2025",
+    "cand_name": "Adams, Eric (ID:1545-P)",
+    "cand_id": "1545",
+    "office": "1",
+    "boro_dist": "()",
+    "to_stmt": "15",
+    "net_cntns": "6708279.99",
+    "match_amt": "786303",
+    "pubfnd_pmt": "0",
+    "net_expnd": "3460813.45",
+    "sml_amt": "440483.1",
+    "i_amt": "126860"
+  },
+  {
+    "el_cycle": "2025",
+    "cand_name": "Adams, Eric (ID:1545-P)",
+    "cand_id": "1545",
+    "office": "1",
+    "boro_dist": "()",
+    "to_stmt": "7",
+    "net_cntns": "4394139.82",
+    "match_amt": "558003",
+    "pubfnd_pmt": "0",
+    "net_expnd": "1222670.83",
+    "sml_amt": "320419.3",
+    "i_amt": "95985"
+  },
+  {
+    "el_cycle": "2025",
+    "cand_name": "Horowitz, Jeffrey (ID:2921-P)",
+    "cand_id": "2921",
+    "office": "5",
+    "boro_dist": "(51)",
+    "to_stmt": "7",
+    "net_cntns": "645",
+    "match_amt": "0",
+    "pubfnd_pmt": "0",
+    "net_expnd": "0",
+    "sml_amt": "0",
+    "i_amt": "0"
+  },
+  {
+    "el_cycle": "2025",
+    "cand_name": "Horowitz, Jeffrey (ID:2921-P) *",
+    "cand_id": "2921",
+    "office": "5",
+    "boro_dist": "(51)",
+    "to_stmt": "15",
+    "net_cntns": "0",
+    "match_amt": "0",
+    "pubfnd_pmt": "0",
+    "net_expnd": "0",
+    "sml_amt": "0",
+    "i_amt": "0"
+  }
+]

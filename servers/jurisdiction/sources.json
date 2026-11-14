@@ -88,8 +88,8 @@
       "dataset_name": "Campaign Financial Analysis",
       "publisher": "Campaign Finance Board (CFB)",
       "publisher_link": null,
-      "covers": "Financial analysis of election campaigns, one row per candidate per election cycle. The dataset's description is a single line and does not list which offices it covers.",
-      "covers_basis": "dataset name and one-line description",
+      "covers": "Financial analysis of election campaigns, per the dataset's one-line description, which does not list which offices it covers. The publisher can hold more than one row per candidate per cycle, one for each range of statements it analysed (from_stmt to to_stmt); this connector keeps the latest.",
+      "covers_basis": "dataset name and one-line description, column descriptions, and rows observed live on 2026-11-13",
       "terms": {
         "read_on": "2026-10-05",
         "source": "https://www.nyc.gov/opendata/get-started/FAQs",
@@ -97,9 +97,10 @@
         "summary": "The NYC Open Data FAQ says \"There are no restrictions on the use of Open Data.\" The dataset record has no licence field. The Open Data Law itself was not read (its host blocks automated reading)."
       },
       "mode": "rows",
-      "select": ["el_cycle", "cand_name", "cand_id", "office", "boro_dist", "incumbent", "net_cntns", "match_amt", "pubfnd_pmt", "net_expnd", "sml_amt", "i_amt"],
-      "numeric": ["net_cntns", "match_amt", "pubfnd_pmt", "net_expnd", "sml_amt", "i_amt"],
+      "select": ["el_cycle", "cand_name", "cand_id", "office", "boro_dist", "incumbent", "to_stmt", "net_cntns", "match_amt", "pubfnd_pmt", "net_expnd", "sml_amt", "i_amt"],
+      "numeric": ["to_stmt", "net_cntns", "match_amt", "pubfnd_pmt", "net_expnd", "sml_amt", "i_amt"],
       "order_by": "net_cntns DESC",
+      "latest_per": { "key": ["el_cycle", "cand_id"], "by": "to_stmt" },
       "filters": {
         "el_cycle": { "column": "el_cycle", "type": "text" },
         "boro_dist": { "column": "boro_dist", "type": "text" },
@@ -109,7 +110,8 @@
       "suggestions": [],
       "notes": [
         "office is a numeric code and boro_dist a coded string. The dataset's metadata does not define either, so read the publisher's own documentation before translating them.",
-        "The most recent cycle in the data may lag. Check el_cycle and ask for it explicitly. Pass el_cycle as text, for example 2025."
+        "The most recent cycle in the data may lag. Check el_cycle and ask for it explicitly. Pass el_cycle as text, for example 2025.",
+        "Every row's totals run from statement 1 to to_stmt, so a later row includes an earlier one. In 2025 most candidates had two rows (statements 1 to 7 and 1 to 15). Only each candidate's row with the highest to_stmt is returned; the publisher does not say what each range stands for, so do not call one the primary and one the general."
       ]
     },
     {

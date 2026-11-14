@@ -280,11 +280,41 @@ test("race totals: an unfiltered query warns that old cycles are mixed in, and a
     const hi = await call("jx_race_totals", { source_id: "hi-csc-contributions" });
     assert.match(hi.json.notes[0], /No election_period filter was set.*2016-2020 to 2020-2024.*the biggest are often old/, "the range actually returned is named");
     const nyc = await call("jx_race_totals", { source_id: "nyc-cfb-analysis" });
-    assert.match(nyc.json.notes[0], /el_cycle.*2001 to 2009/);
+    assert.match(nyc.json.notes[0], /el_cycle.*2001 to 2025/);
     const au = await call("jx_race_totals", { source_id: "austin-contributions" });
     assert.match(au.json.notes[0], /contribution_year filter was set, so this covers every period/, "a source that doesn't return the cycle column still gets a warning");
     const wa = await call("jx_race_totals", { source_id: "wa-pdc-summary", filters: { election_year: 2026 } });
     assert.doesNotMatch(wa.json.notes.join(" "), /filter was set/, "no warning once the cycle is pinned");
+  });
+});
+
+test("race totals: NYC keeps each candidate's latest statement range, fetched whole and cut after", async () => {
+  await withJx(async (call, mock) => {
+    const r = await call("jx_race_totals", { source_id: "nyc-cfb-analysis", filters: { el_cycle: "2025" }, limit: 5 });
+    assert.ok(!r.isError, r.text);
+    const j = r.json;
+    const q = mock.seen.find((s) => s.path === "/resource/m3tj-a2pb.json").query;
+    assert.equal(q.$limit, "10000", "the whole filtered set is fetched, not the top N, so a latest row can't fall outside the window");
+    const ids = j.rows.map((row) => `${row.el_cycle}/${row.cand_id}`);
+    assert.equal(new Set(ids).size, ids.length, "one row per candidate per cycle");
+    const adams = j.rows.find((row) => row.cand_id === "1545");
+    assert.equal(adams.to_stmt, 15, "to_stmt compared as a number: 15 beats 7");
+    assert.equal(adams.net_cntns, 6708279.99);
+    const refund = j.rows.find((row) => row.cand_id === "2921");
+    assert.equal(refund.to_stmt, 15, "the latest row wins even when its total is lower");
+    assert.equal(refund.net_cntns, 0);
+    // The mock ignores the filter: 7 recorded rows, 5 candidates once the 2 earlier rows go.
+    assert.equal(j.returned, 5);
+    assert.equal(j.may_be_more, undefined, "all 5 fit, so nothing more is claimed even though 7 rows came back");
+    assert.match(j.notes.join(" "), /2 earlier rows were left out/);
+    assert.match(j.notes.join(" "), /do not call one the primary and one the general/);
+  });
+});
+
+test("race totals: other Socrata sources still ask for just the rows they return", async () => {
+  await withJx(async (call, mock) => {
+    await call("jx_race_totals", { source_id: "hi-csc-contributions", limit: 7 });
+    assert.equal(mock.seen.find((s) => s.path === "/resource/jexd-xbcg.json").query.$limit, "7");
   });
 });
 
@@ -880,6 +910,8 @@ test("a registry entry without its publisher's terms, or with a condition that i
     [(s) => (s.terms.source = "the dataset page"), /terms\.source must be a web address/],
     [(s) => (s.terms.condition = true), /terms\.condition must be the publisher's words or null/],
     [(s) => (s.terms.summary = ""), /terms\.summary is missing/],
+    [(s) => (s.latest_per.by = "cand_name"), /latest_per\.by must be a numeric column/],
+    [(s) => (s.latest_per.key = ["from_stmt"]), /latest_per\.key must list columns in select/],
   ];
   for (const [i, [breakIt, expected]] of cases.entries()) {
     const reg = read();

@@ -151,6 +151,12 @@ function loadRegistry() {
     }
     const sql = SQL_PLATFORMS.includes(platform);
     if (s.require_in && !sql) problems.push(`${s.id}: require_in is only built for ${SQL_PLATFORMS.join(" and ")} sources`);
+    if (s.latest_per !== undefined) {
+      const lp = s.latest_per;
+      if (platform !== "socrata" || s.mode !== "rows") problems.push(`${s.id}: latest_per is only built for socrata sources in rows mode`);
+      else if (!Array.isArray(lp?.key) || !lp.key.length || !lp.key.every((c) => (s.select || []).includes(c))) problems.push(`${s.id}: latest_per.key must list columns in select`);
+      else if (!(s.numeric || []).includes(lp.by)) problems.push(`${s.id}: latest_per.by must be a numeric column in select`);
+    }
     for (const [k, f] of Object.entries(s.filters || {})) {
       if (f.type === "present" && !sql) problems.push(`${s.id}: a present filter ("${k}") is only built for ${SQL_PLATFORMS.join(" and ")} sources`);
     }
@@ -451,8 +457,25 @@ function buildQuery(source, filters, limit) {
   // Socrata sorts nulls first on DESC, which floats filers with no money reported
   // above the real totals. NULL LAST keeps empties at the bottom, like sortRows.
   q.set("$order", `${source.order_by} NULL LAST`);
-  q.set("$limit", String(limit));
+  // A latest_per source is fetched whole, then cut down, so a candidate's latest
+  // row can never fall outside the window while an older one makes it in.
+  q.set("$limit", String(source.latest_per ? FETCH_ALL : limit));
   return q;
+}
+
+const FETCH_ALL = 10000;
+
+// One row per key: the one with the highest `by`, compared as numbers (it arrives
+// as text, and "7" > "15"). Rows stay in the order the publisher sorted them.
+function latestPer(rows, { key, by }) {
+  const best = new Map();
+  const rank = (r) => Number(r[by] ?? -Infinity);
+  for (const r of rows) {
+    const k = JSON.stringify(key.map((c) => r[c] ?? null));
+    if (!best.has(k) || rank(r) > rank(best.get(k))) best.set(k, r);
+  }
+  const keep = new Set(best.values());
+  return rows.filter((r) => keep.has(r));
 }
 
 function shapeRows(source, rows) {
@@ -472,12 +495,24 @@ function shapeRows(source, rows) {
   });
 }
 
-async function runSocrata(source, query) {
+async function runSocrata(source, { query, limit }) {
   const base = datasetBase(source);
-  const [rows, view] = await Promise.all([
+  const [fetched, view] = await Promise.all([
     getJson(`${base}/resource/${source.dataset}.json?${query}`, `${source.domain}`),
     getJson(`${base}/api/views/${source.dataset}.json`, `${source.domain} metadata`).catch(() => null),
   ]);
+
+  let rows = fetched;
+  let more;
+  const notes = [];
+  if (source.latest_per) {
+    const latest = latestPer(fetched, source.latest_per);
+    const dropped = fetched.length - latest.length;
+    if (dropped) notes.push(`${dropped} earlier ${dropped === 1 ? "row was" : "rows were"} left out: ${dropped === 1 ? "it covers" : "they cover"} a shorter run of statements for a candidate who also has a later row.`);
+    if (fetched.length >= FETCH_ALL) notes.push(`The publisher had more than ${FETCH_ALL} matching rows, so not every candidate was checked for a later row. Narrow the filters.`);
+    more = latest.length > limit || fetched.length >= FETCH_ALL;
+    rows = latest.slice(0, limit);
+  }
 
   const drift = [];
   if (view) {
@@ -488,7 +523,7 @@ async function runSocrata(source, query) {
   } else {
     drift.push("Could not read the dataset's metadata, so its freshness and publisher were not re-checked this time.");
   }
-  return { rows, drift, updated: { data_updated_at: view?.rowsUpdatedAt ? new Date(view.rowsUpdatedAt * 1000).toISOString().slice(0, 10) : null }, notes: [] };
+  return { rows, ...(more !== undefined ? { more } : {}), drift, updated: { data_updated_at: view?.rowsUpdatedAt ? new Date(view.rowsUpdatedAt * 1000).toISOString().slice(0, 10) : null }, notes };
 }
 
 /* ------------------------------------------------------------------- carto */
@@ -717,7 +752,7 @@ async function runOcpf(source, { limit, local, year, path }) {
 // One entry per publishing platform. prepare() validates the filters and builds the
 // request without sending anything; run() sends it and reports what it could re-check.
 const PLATFORMS = {
-  socrata: { prepare: buildQuery, run: runSocrata },
+  socrata: { prepare: (source, filters, limit) => ({ query: buildQuery(source, filters, limit), limit }), run: runSocrata },
   carto: { prepare: buildCartoSql, run: runCarto },
   arcgis: { prepare: buildArcgisQuery, run: runArcgis },
   ocpf: { prepare: buildOcpfRequest, run: runOcpf },
